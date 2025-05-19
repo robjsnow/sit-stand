@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sit/Stand Tracker</title>
+  <style>
+    body {
+      background-color: #1e1e2f;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 2em;
+    }
+
+    h1 {
+      color: #c084fc;
+      font-size: 2.5em;
+      margin-bottom: 0.5em;
+    }
+
+    #status {
+      font-size: 1.5em;
+      margin-top: 1em;
+    }
+
+    .emoji {
+      font-size: 2.5em;
+      margin-bottom: 0.5em;
+    }
+
+    .time {
+      font-size: 2em;
+      margin: 1em 0;
+      color: #a5b4fc;
+    }
+
+    button {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 1em 2em;
+      margin: 0.5em;
+      font-size: 1em;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      background: #a855f7;
+      transform: scale(1.05);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <h1>🪑 Sit/Stand Tracker</h1>
+  <div class="emoji" id="emoji">🪑</div>
+  <div id="status">Current Mode: Sitting</div>
+  <div class="time" id="standTime">Time Standing: 00:00:00</div>
+  <button onclick="toggleMode()">🔁 Toggle Sit/Stand</button>
+  <button onclick="resetTime()">🧹 Reset</button>
+
+  <script>
+    let mode = localStorage.getItem('mode') || 'Sitting';
+    let totalStandMs = Number(localStorage.getItem('totalStandMs')) || 0;
+    let startTime = null;
+
+    const status = document.getElementById('status');
+    const emoji = document.getElementById('emoji');
+    const timeDisplay = document.getElementById('standTime');
+
+    function updateStatus() {
+      status.textContent = `Current Mode: ${mode}`;
+      emoji.textContent = mode === 'Standing' ? '🧍‍♂️' : '🪑';
+    }
+
+    function updateTimer() {
+      let elapsed = totalStandMs;
+      if (mode === 'Standing' && startTime) {
+        elapsed += Date.now() - startTime;
+      }
+
+      const hours = Math.floor(elapsed / 3600000);
+      const minutes = Math.floor((elapsed % 3600000) / 60000);
+      const seconds = Math.floor((elapsed % 60000) / 1000);
+
+      timeDisplay.textContent =
+        `Time Standing: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function toggleMode() {
+      if (mode === 'Sitting') {
+        mode = 'Standing';
+        startTime = Date.now();
+      } else {
+        if (startTime) {
+          totalStandMs += Date.now() - startTime;
+          localStorage.setItem('totalStandMs', totalStandMs);
+        }
+        mode = 'Sitting';
+        startTime = null;
+      }
+      localStorage.setItem('mode', mode);
+      updateStatus();
+    }
+
+    function resetTime() {
+      mode = 'Sitting';
+      totalStandMs = 0;
+      startTime = null;
+      localStorage.setItem('totalStandMs', '0');
+      localStorage.setItem('mode', 'Sitting');
+      updateStatus();
+    }
+
+    if (mode === 'Standing') startTime = Date.now();
+    updateStatus();
+    setInterval(updateTimer, 1000);
+  </script>
+</body>
+</html>
